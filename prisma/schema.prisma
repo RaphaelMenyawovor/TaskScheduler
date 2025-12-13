@@ -18,7 +18,7 @@ model User {
   id        Int        @id @default(autoincrement())
   email     String     @unique
   salt      String
-  password  String
+  hashedPassword  String
   name      String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now()) @updatedAt
@@ -31,9 +31,29 @@ model Task {
   title       String
   description String?
   completed   Boolean   @default(false)
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
+  completedAt DateTime?
   dueDate     DateTime?
-  user        User      @relation(fields: [userId], references: [id])
-  userId      Int       @relation()
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([userId, status])
+}
+
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }

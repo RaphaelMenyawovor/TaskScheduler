@@ -28,12 +28,14 @@ model User {
 model Task {
   id          Int       @id @default(autoincrement())
   title       String
-  description String?
+  message     String
   completed   Boolean   @default(false)
   status      TaskStatus   @default(PENDING)
   priority    TaskPriority @default(MEDIUM)
   completedAt DateTime?
   dueDate     DateTime?
+  frequency   String?
+  cronExpression  String?
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   createdAt   DateTime  @default(now())
@@ -47,7 +49,6 @@ enum TaskStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
-  CANCELLED
 }
 
 enum TaskPriority {

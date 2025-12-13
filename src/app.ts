@@ -7,6 +7,7 @@ import logger from './utils/logger.js';
 import { prisma } from './config/db.js';
 
 import authRoutes from './routes/auth.routes.js';
+import taskRoutes from './routes/task.routes.js';
 
 const app = express();
 
@@ -18,7 +19,18 @@ app.use(httpLogger);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
 
+
+
+
+
+
+
+
+
+// ------- Basic Routes for testing -------
+// Base route
 app.get('/', (_req: Request, res: Response) => {
   logger.info('Base route hit');
   res.send('API is running');

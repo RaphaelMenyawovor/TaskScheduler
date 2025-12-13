@@ -17,7 +17,6 @@ datasource db {
 model User {
   id        Int        @id @default(autoincrement())
   email     String     @unique
-  salt      String
   hashedPassword  String
   name      String?
   createdAt DateTime   @default(now())

@@ -9,6 +9,7 @@ export const register = async (req: Request, res: Response): Promise<Response> =
     try {
         const parsed = registerSchema.safeParse(req.body);
         if (!parsed.success) {
+            logger.warn(`Registration validation failed: ${JSON.stringify(parsed.error.issues)}`);
             return res.status(400).json({ error: parsed.error.issues });
         }
 
@@ -26,7 +27,7 @@ export const register = async (req: Request, res: Response): Promise<Response> =
         const user = await prisma.user.create({
             data: {
                 email,
-                password: hashedPassword,
+                hashedPassword,
                 name: name ?? null, 
             },
         });
@@ -41,6 +42,51 @@ export const register = async (req: Request, res: Response): Promise<Response> =
     } catch (error) {
         const errorMessage = (error as Error).message;
         logger.error(`Registration error: ${errorMessage}`);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
+export const login = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const parsed = loginSchema.safeParse(req.body);
+        if (!parsed.success) {
+            logger.warn(`Login input validation failed: ${JSON.stringify(parsed.error.issues)}`);
+            return res.status(400).json({ error: 'Invalid input format' });
+        }
+        const { email, password } = parsed.data;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            logger.warn(`Login failed: Email ${email} not found`);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        const isValid = await bcrypt.compare(password, user.hashedPassword);
+        if (!isValid) {
+            logger.warn(`Login failed: Incorrect password for ${email}`);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        const secret = process.env.JWT_SECRET;
+
+        if (!(secret)) {
+            logger.error('JWT_SECRET is not defined in environment variables');
+            return res.status(500).json({ error: 'Internal server error' });
+        } 
+
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            secret,
+            { expiresIn: '4h' }
+        );
+
+        logger.info(`User logged in: ID ${user.id}`);
+        return res.json({ message: 'Login successful', token });
+
+    } catch (error) {
+        const errorMessage = (error as Error).message;
+        logger.error(`Login error: ${errorMessage}`);
         return res.status(500).json({ error: 'Internal server error' });
     }
 };

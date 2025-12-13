@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./src/server.js",
     "lint": "eslint .",
-    "dev": "nodemon tsx ./src/server.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'tsx' src/server.ts",
     "p:gen": "prisma generate",
     "p:mig": "prisma migrate dev",
     "p:studio": "prisma studio"
@@ -28,7 +28,8 @@
     "node-cron": "^4.2.1",
     "pg": "^8.16.3",
     "tsx": "^4.21.0",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

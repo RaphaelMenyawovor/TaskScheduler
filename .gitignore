@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+
+# MacOS files
+.DS_Store
+
+# Prisma generated client + query engine
+/src/generated/prisma

@@ -10,7 +10,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./src/server.js",
     "lint": "eslint .",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'tsx' src/server.ts"
+    "dev": "nodemon tsx ./src/server.ts",
+    "p:gen": "prisma generate",
+    "p:mig": "prisma migrate dev",
+    "p:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.1.0",

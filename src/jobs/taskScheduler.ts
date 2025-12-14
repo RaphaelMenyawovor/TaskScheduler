@@ -57,7 +57,7 @@ let isRunning = false;
 
 export const runTaskDispatch = async (): Promise<void> => {
   if (isRunning) {
-    logger.warn('Task scheduler skipped. Previous run still in progress');
+    logger.warn('Task scheduler skipped. Previous job still in progress');
     return;
   }
 
@@ -82,14 +82,12 @@ export const runTaskDispatch = async (): Promise<void> => {
       take: 100,
     });
 
-    if (dueTasks.length === 0) {
-      return;
-    }
+    if (dueTasks.length > 0) {
+      logger.info(`Task scheduler found ${dueTasks.length} due task(s)`);
 
-    logger.info(`Task scheduler found ${dueTasks.length} due task(s)`);
-
-    for (const task of dueTasks) {
-      await handleDueTask(task);
+      for (const task of dueTasks) {
+        await handleDueTask(task);
+      }
     }
   } catch (error) {
     const errorMessage = (error as Error).message;

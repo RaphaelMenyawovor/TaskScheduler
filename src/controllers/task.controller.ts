@@ -2,7 +2,8 @@ import type { Request, Response } from 'express';
 import type { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../config/db.js';
 import logger from '../utils/logger.js';
-import { createTaskSchema, listTasksSchema, taskIdParamSchema, updateTaskSchema,} from '../validators/task.validator.js';
+import { createTaskSchema, listTasksSchema, taskIdParamSchema, updateTaskSchema } from '../validators/task.validator.js';
+import { frequencyToCron, normalizeFrequency } from '../utils/frequency.js';
 
 export const createTask = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -19,11 +20,15 @@ export const createTask = async (req: Request, res: Response): Promise<Response>
       return res.status(400).json({ error: parsed.error.issues });
     }
 
-    const { title, message, priority, completed: completedInput, dueDate, frequency, cronExpression } = parsed.data;
+    const { title, message, priority, completed: completedInput, dueDate, frequency } = parsed.data;
 
     const completed = completedInput ?? false;
     const status = completed ? 'COMPLETED' : 'PENDING';
     const completedAt = completed ? new Date() : null;
+    const dueDateValue = dueDate ? new Date(dueDate) : frequency ? new Date() : null;
+    const normalizedFrequency = frequency ? normalizeFrequency(frequency) : null;
+    const cronExpression =
+      normalizedFrequency && dueDateValue ? frequencyToCron(normalizedFrequency, dueDateValue) : null;
 
     const task = await prisma.task.create({
       data: {
@@ -33,9 +38,9 @@ export const createTask = async (req: Request, res: Response): Promise<Response>
         completed,
         status,
         completedAt,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        frequency: frequency ?? null,
-        cronExpression: cronExpression ?? null,
+        dueDate: dueDateValue,
+        frequency: normalizedFrequency,
+        cronExpression,
         userId: authUserId,
       },
       select: {
@@ -250,13 +255,34 @@ export const updateTask = async (req: Request, res: Response): Promise<Response>
     }
 
     const data: Prisma.TaskUpdateInput = {};
+    let nextDueDate = existing.dueDate;
+    let nextFrequency = existing.frequency;
 
     if (updates.title !== undefined) data.title = updates.title;
     if (updates.message !== undefined) data.message = updates.message;
     if (updates.priority !== undefined) data.priority = updates.priority;
-    if (updates.dueDate !== undefined) data.dueDate = updates.dueDate ? new Date(updates.dueDate) : null;
-    if (updates.frequency !== undefined) data.frequency = updates.frequency;
-    if (updates.cronExpression !== undefined) data.cronExpression = updates.cronExpression;
+
+    if (updates.dueDate !== undefined) {
+      nextDueDate = updates.dueDate ? new Date(updates.dueDate) : null;
+      data.dueDate = nextDueDate;
+    }
+
+    if (updates.frequency !== undefined) {
+      nextFrequency = updates.frequency ? normalizeFrequency(updates.frequency) : null;
+      data.frequency = nextFrequency;
+      if (nextFrequency && updates.dueDate === undefined && !existing.dueDate) {
+        nextDueDate = new Date();
+        data.dueDate = nextDueDate;
+      }
+    }
+
+    if (updates.dueDate !== undefined || updates.frequency !== undefined) {
+      const cronExpression =
+        nextFrequency && (nextDueDate ?? existing.dueDate ?? new Date())
+          ? frequencyToCron(nextFrequency, (nextDueDate ?? existing.dueDate) ?? new Date())
+          : null;
+      data.cronExpression = cronExpression;
+    }
 
     if (nextStatus !== existing.status) data.status = nextStatus;
     if (nextCompleted !== existing.completed) data.completed = nextCompleted;

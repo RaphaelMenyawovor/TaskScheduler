@@ -5,8 +5,8 @@ import { getNextDueDate } from '../utils/frequency.js';
 import "dotenv/config";
 
 const SCHEDULER_ENABLED = process.env.TASK_SCHEDULER_ENABLED !== 'false';
-const SCHEDULER_CRON = process.env.TASK_SCHEDULER_CRON ?? '*/5 * * * *';
-const SCHEDULER_TZ = process.env.TASK_SCHEDULER_TZ ?? "UTC";
+const SCHEDULER_CRON = process.env.TASK_SCHEDULER_CRON ?? '*/1 * * * *';
+const SCHEDULER_TZ = process.env.TASK_SCHEDULER_TZ ?? 'UTC';
 
 
 type DueTask = {

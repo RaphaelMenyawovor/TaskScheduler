@@ -58,4 +58,4 @@ export const getNextDueDate = (frequency: string, from: Date): Date | null => {
   }
 };
 
-export const normalizeFrequency = (value: string): string => normalize(value);
+export const normalizeFrequency = (value: string) => normalize(value);

@@ -82,7 +82,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         );
 
         logger.info(`User logged in: ID ${user.id}`);
-        return res.json({ message: 'Login successful', token });
+        return res.json({ message: 'Login successful', user: { id: user.id, email: user.email } , token });
 
     } catch (error) {
         const errorMessage = (error as Error).message;

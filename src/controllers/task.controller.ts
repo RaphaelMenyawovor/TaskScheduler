@@ -26,7 +26,7 @@ export const createTask = async (req: Request, res: Response): Promise<Response>
     const status = completed ? 'COMPLETED' : 'PENDING';
     const completedAt = completed ? new Date() : null;
     const now = new Date();
-    const dueDateValue = dueDate ? new Date(dueDate) : frequency ? new Date() : null;
+    const dueDateValue = dueDate ? new Date(dueDate) : frequency ? new Date(Date.now() + 60_000) : null;
     if (dueDateValue && dueDateValue.getTime() <= now.getTime()) {
       return res.status(400).json({ error: 'Due date must be in the future' });
     }
@@ -279,7 +279,7 @@ export const updateTask = async (req: Request, res: Response): Promise<Response>
       nextFrequency = updates.frequency ? normalizeFrequency(updates.frequency) : null;
       data.frequency = nextFrequency;
       if (nextFrequency && updates.dueDate === undefined && !existing.dueDate) {
-        nextDueDate = new Date();
+        nextDueDate = new Date(Date.now() + 60_000);
         data.dueDate = nextDueDate;
       }
     }
